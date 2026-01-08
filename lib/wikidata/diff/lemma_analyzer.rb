@@ -29,7 +29,7 @@ class LemmaAnalyzer
 
     # if parentid is 0, then add all labels as added and return it
     if parent_content.nil?
-      current_labels.each do |lang, _label|
+      current_labels.each_key do |lang|
         added_labels << { lang: lang }
       end
       return {
@@ -51,7 +51,7 @@ class LemmaAnalyzer
       end
 
       # Iterate over each language in the parent labels to find removed labels
-      (parent_labels || {}).each do |lang, _parent_label|
+      (parent_labels || {}).each_key do |lang|
         removed_labels << { lang: lang } if current_labels[lang].nil?
       end
     end

@@ -30,7 +30,7 @@ class GlossAnalyzer
 
     # if parentid is 0, then add all labels as added and return it
     if parent_content.nil?
-      current_glosses.each do |lang, _label|
+      current_glosses.each_key do |lang|
         added << { lang: lang }
       end
       return {
@@ -52,7 +52,7 @@ class GlossAnalyzer
       end
 
       # Iterate over each language in the parent labels to find removed labels
-      (parent_glosses || {}).each do |lang, _parent_gloss|
+      (parent_glosses || {}).each_key do |lang|
         removed << { lang: lang } if current_glosses[lang].nil?
       end
     end

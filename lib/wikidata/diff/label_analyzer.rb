@@ -31,7 +31,7 @@ class LabelAnalyzer
     # if parentid is 0, then add all labels as added_labels and return it
     if parent_content.nil?
       unless current_labels.empty?
-        current_labels.each do |lang, _label|
+        current_labels.each_key do |lang|
           added_labels_labels << { lang: lang }
         end
       end
@@ -56,7 +56,7 @@ class LabelAnalyzer
       end
 
       # Iterate over each language in the parent labels to find removed_labels labels
-      parent_labels.each do |lang, _parent_label|
+      parent_labels.each_key do |lang|
         removed_labels_labels << { lang: lang } if current_labels.empty?
       end
     end

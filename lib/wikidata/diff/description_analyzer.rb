@@ -31,7 +31,7 @@ class DescriptionAnalyzer
     # if parentid is 0, add all current description as added and return it
     if parent_content.nil?
       unless current_descriptions.empty?
-        current_descriptions.each do |lang, _description|
+        current_descriptions.each_key do |lang|
           added_descriptions << { lang: lang }
         end
       end
@@ -54,7 +54,7 @@ class DescriptionAnalyzer
       end
 
       # Iterate over each language in the parent descriptions to find removed descriptions
-      parent_descriptions.each do |lang, _parent_description|
+      parent_descriptions.each_key do |lang|
         removed_descriptions << { lang: lang } if current_descriptions.empty?
       end
     end

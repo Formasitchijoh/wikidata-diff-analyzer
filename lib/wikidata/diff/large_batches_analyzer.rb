@@ -16,7 +16,7 @@ class LargeBatchesAnalyzer
 
       # I have to check if any of the revision ids in the parsed content has parentid == 0
       parsed_contents.each do |revid, data|
-        if (data[:parentid]).zero?
+        if data[:parentid].zero?
           first_revisions << revid
         else
           parent_ids << data[:parentid]
