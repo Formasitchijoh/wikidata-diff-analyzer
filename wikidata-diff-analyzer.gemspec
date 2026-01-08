@@ -36,9 +36,9 @@ Gem::Specification.new do |spec|
   spec.files.reject! { |f| File.extname(f) == '.gem' }
 
   # Adding the dependencies
-  spec.add_dependency 'json', '~> 2.1'
-  spec.add_dependency 'mediawiki_api', '~> 0.7.0'
-  spec.add_dependency 'rake', '~> 13.0'
-  spec.add_dependency 'rspec', '~> 3.0'
-  spec.add_dependency 'rubocop', '~> 1.21'
+  spec.add_runtime_dependency 'json', '~> 2.1'
+  spec.add_runtime_dependency 'mediawiki_api'
+  spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'rspec', '~> 3.0'
+  spec.add_development_dependency 'rubocop', '~> 1.21'
 end
