@@ -79,7 +79,7 @@ class Api
   end
 
   def self.api_client
-    MediawikiApi::Client.new(API_URL)
+    @api_client ||= MediawikiApi::Client.new(API_URL)
   end
 
   def self.too_many_requests?(error)
