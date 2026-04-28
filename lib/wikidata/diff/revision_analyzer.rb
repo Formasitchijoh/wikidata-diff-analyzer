@@ -82,6 +82,7 @@ class RevisionAnalyzer
     COMMENT_TYPES.each do |change_type|
       diff[change_type] = phrases[change_type]
     end
+    diff.merge!(phrases.slice(:merge_target, :merge_source))
 
     NOT_IN_ITEM.each do |change_type|
       diff[change_type] = 0

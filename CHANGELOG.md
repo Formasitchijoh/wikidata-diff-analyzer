@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [2.2.0]
+
+- Expose merge counterparty Q-ids on the diff. When a revision's edit comment is `wbmergeitems-to:…||Q…` or `wbmergeitems-from:…||Q…`, the per-revision diff now includes a `:merge_target` or `:merge_source` field with the parsed Q-id. Only present on the actual merge revision; existing counter fields are unchanged. Lets consumers reason about which item was merged into which without re-fetching the comment — needed to count merges when the source item is no longer in the consumer's tracked-articles list (e.g. PetScan-driven dashboards excluding redirects).
+
 ## [2.1.0]
 
 - Add configurable `User-Agent` for wikidata.org requests via `WikidataDiffAnalyzer.user_agent=`. Default identifies the gem; applications should override with their own so wikidata sysadmins can route any traffic concerns to the right party. Resolves anonymous-client 429s when running the spec suite or other unauthenticated callers.
