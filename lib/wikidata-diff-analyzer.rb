@@ -70,7 +70,7 @@ module WikidataDiffAnalyzer
     # 0 is a sentinel that can never be analyzed.
     if revision_ids.include?(0)
       diffs_not_analyzed << 0
-      revision_ids = revision_ids - [0]
+      revision_ids -= [0]
     end
 
     revision_ids.each_slice(BATCH_SIZE) do |batch|
@@ -97,6 +97,7 @@ module WikidataDiffAnalyzer
     batch.each do |rev_id|
       data = parsed_currents[rev_id]
       next unless data && data[:content]
+
       parent_id = data[:parentid]
       parent_content =
         if parent_id.nil? || parent_id.zero?
@@ -125,10 +126,12 @@ module WikidataDiffAnalyzer
       pid = data[:parentid]
       next if pid.nil? || pid.zero?
       next if parsed_currents.key?(pid)
+
       parent_ids_to_fetch << pid
     end
     parent_ids_to_fetch.uniq!
     return {} if parent_ids_to_fetch.empty?
+
     Api.get_revision_contents(parent_ids_to_fetch) || {}
   end
   private_class_method :fetch_missing_parents
