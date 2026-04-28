@@ -14,9 +14,22 @@ class CommentAnalyzer
 
     return phrases if comment.nil?
 
-    phrases[:merge_from] = 1 if comment.include?('wbmergeitems-from')
+    # Merge edit summaries embed the counterparty Q-id, e.g.
+    # "/* wbmergeitems-to:0||Q3350322 */". Capture it so consumers can tell
+    # which item was merged into which without re-fetching the comment.
+    if (m = comment.match(/wbmergeitems-from:\d*\|\|(Q\d+)/))
+      phrases[:merge_from] = 1
+      phrases[:merge_source] = m[1]
+    elsif comment.include?('wbmergeitems-from')
+      phrases[:merge_from] = 1
+    end
 
-    phrases[:merge_to] = 1 if comment.include?('wbmergeitems-to')
+    if (m = comment.match(/wbmergeitems-to:\d*\|\|(Q\d+)/))
+      phrases[:merge_to] = 1
+      phrases[:merge_target] = m[1]
+    elsif comment.include?('wbmergeitems-to')
+      phrases[:merge_to] = 1
+    end
 
     phrases[:redirect] = 1 if comment.include?('wbcreateredirect')
 
