@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wikidata-diff-analyzer (2.0.4)
+    wikidata-diff-analyzer (2.1.0)
       json (~> 2.1)
       mediawiki_api
 

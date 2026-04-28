@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [2.1.0]
+
+- Add configurable `User-Agent` for wikidata.org requests via `WikidataDiffAnalyzer.user_agent=`. Default identifies the gem; applications should override with their own so wikidata sysadmins can route any traffic concerns to the right party. Resolves anonymous-client 429s when running the spec suite or other unauthenticated callers.
+- Refactor `WikidataDiffAnalyzer.analyze` to stream batch-by-batch: fetch one batch's revisions, compute their diffs, then drop the fetched content before moving to the next batch. Peak memory becomes a function of batch size rather than total input size — observed RSS peak drops from ~240 MB to ~25 MB on a 2000-rev input, and is now roughly constant regardless of input size at a given batch size.
+- Within-batch parent-fetch dedupe: when a revision's parent ID is also among the current batch's input revisions, reuse the already-fetched content instead of re-fetching it as a parent. On bot-tier inputs this captures ~94% of the cross-batch parent-overlap the prior implementation paid for, translating to ~30% less data transferred per call without changing API call count.
+- `analyze` no longer mutates its `revision_ids` argument (previously called `delete(0)` on the caller's array).
+
 ## [0.1.0] - 2023-05-22
 
 - Initial release

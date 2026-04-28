@@ -6,6 +6,25 @@ require 'mediawiki_api'
 class Api
   API_URL = 'https://www.wikidata.org/w/api.php'
 
+  class << self
+    # User-Agent sent on every wikidata.org API request. Wikimedia's API
+    # policy asks for a descriptive UA identifying the consumer so its
+    # sysadmins can route any traffic concerns to the right party. The
+    # default identifies this gem; applications should override with their
+    # own via WikidataDiffAnalyzer.user_agent= before any analyze call.
+    def user_agent=(val)
+      @user_agent = val
+      # If api_client was already built, retroactively update its UA header
+      # so an override mid-program takes effect on the existing connection.
+      @api_client&.instance_variable_get(:@conn)&.headers&.[]=('User-Agent', val)
+    end
+
+    def user_agent
+      @user_agent ||= "wikidata-diff-analyzer/#{WikidataDiffAnalyzer::VERSION} " \
+                      '(https://github.com/WikiEducationFoundation/wikidata-diff-analyzer)'
+    end
+  end
+
   def self.get_revision_contents(revision_ids)
     revision_ids = revision_ids.uniq if revision_ids
     response = fetch_all_revisions(revision_ids)
@@ -79,7 +98,9 @@ class Api
   end
 
   def self.api_client
-    @api_client ||= MediawikiApi::Client.new(API_URL)
+    @api_client ||= MediawikiApi::Client.new(API_URL).tap do |c|
+      c.instance_variable_get(:@conn).headers['User-Agent'] = user_agent
+    end
   end
 
   def self.too_many_requests?(error)
