@@ -1,11 +1,19 @@
 # frozen_string_literal: true
 
+require_relative 'reference_analyzer'
+require_relative 'qualifier_analyzer'
+
 class InsideClaimAnalyzer
   def self.isolate_inside_claim_differences(current_content, parent_content)
-    # Initialize empty arrays to store the added, removed, and changed claims
     added = []
     removed = []
     changed = []
+    added_references = []
+    removed_references = []
+    changed_references = []
+    added_qualifiers = []
+    removed_qualifiers = []
+    changed_qualifiers = []
 
     if current_content.nil?
       current_content_claims = {}
@@ -21,52 +29,65 @@ class InsideClaimAnalyzer
       parent_content_claims = {} unless parent_content_claims.is_a?(Hash)
     end
 
-    # if parentid is 0, add all current claims as added claims and return it
     if parent_content.nil?
       current_content_claims.each do |claim_key, current_claims|
-        current_claims.each_with_index do |_current_claim, index|
+        current_claims.each_with_index do |current_claim, index|
           added << { key: claim_key, index: index }
+          ReferenceAnalyzer.reference_updates(current_claim, added_references, claim_key, index)
+          QualifierAnalyzer.qualifier_updates(current_claim, added_qualifiers, claim_key, index)
         end
       end
     else
-      # Iterate over each claim key in the current content
       current_content_claims.each do |claim_key, current_claims|
-        # Check if the claim key exists in the parent content
         if parent_content_claims.key?(claim_key)
           parent_claims = parent_content_claims[claim_key]
-          # Iterate over each claim in the current and parent content
           current_claims.each_with_index do |current_claim, index|
             parent_claim = parent_claims[index]
             if parent_claim.nil?
-              # Claim was added
               added << { key: claim_key, index: index }
-
+              ReferenceAnalyzer.reference_updates(current_claim, added_references, claim_key, index)
+              QualifierAnalyzer.qualifier_updates(current_claim, added_qualifiers, claim_key, index)
             elsif current_claim != parent_claim
-              # Claim was changed
               changed << { key: claim_key, index: index }
+              ref_result = ReferenceAnalyzer.handle_changed_references(
+                current_claim, parent_claim, changed_references,
+                added_references, removed_references, claim_key, index
+              )
+              added_references   = ref_result[:added_references]
+              removed_references = ref_result[:removed_references]
+              changed_references = ref_result[:changed_references]
+              qual_result = QualifierAnalyzer.handle_changed_qualifiers(
+                current_claim, parent_claim, changed_qualifiers,
+                added_qualifiers, removed_qualifiers, claim_key, index
+              )
+              added_qualifiers   = qual_result[:added_qualifiers]
+              removed_qualifiers = qual_result[:removed_qualifiers]
+              changed_qualifiers = qual_result[:changed_qualifiers]
             end
           end
-          # Check for removed claims
-          parent_claims.each_with_index do |_parent_claim, index|
+          parent_claims.each_with_index do |parent_claim, index|
             current_claim = current_claims[index]
             if current_claim.nil?
-              # Claim was removed
               removed << { key: claim_key, index: index }
+              ReferenceAnalyzer.reference_updates(parent_claim, removed_references, claim_key, index)
+              QualifierAnalyzer.qualifier_updates(parent_claim, removed_qualifiers, claim_key, index)
             end
           end
         else
-          # All claims in current content with this key were added
-          current_claims.each_index do |index|
+          current_claims.each_with_index do |current_claim, index|
             added << { key: claim_key, index: index }
+            ReferenceAnalyzer.reference_updates(current_claim, added_references, claim_key, index)
+            QualifierAnalyzer.qualifier_updates(current_claim, added_qualifiers, claim_key, index)
           end
         end
       end
 
       parent_content_claims.each do |claim_key, parent_claims|
-        # current content[claims] can be nil
-        parent_claims.each_index do |index|
+        parent_claims.each_with_index do |parent_claim, index|
           if current_content_claims.nil? || !current_content_claims.key?(claim_key)
             removed << { key: claim_key, index: index }
+            ReferenceAnalyzer.reference_updates(parent_claim, removed_references, claim_key, index)
+            QualifierAnalyzer.qualifier_updates(parent_claim, removed_qualifiers, claim_key, index)
           end
         end
       end
@@ -75,7 +96,13 @@ class InsideClaimAnalyzer
     {
       added: added,
       removed: removed,
-      changed: changed
+      changed: changed,
+      added_references: added_references,
+      removed_references: removed_references,
+      changed_references: changed_references,
+      added_qualifiers: added_qualifiers,
+      removed_qualifiers: removed_qualifiers,
+      changed_qualifiers: changed_qualifiers
     }
   end
 end

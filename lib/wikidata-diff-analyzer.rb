@@ -20,12 +20,18 @@ module WikidataDiffAnalyzer
     descriptions_added descriptions_removed descriptions_changed
     sitelinks_added sitelinks_removed sitelinks_changed
     lemmas_added lemmas_removed lemmas_changed
+    language_added language_changed
+    lexical_category_added lexical_category_changed
     forms_added forms_removed forms_changed
     representations_added representations_removed representations_changed
     formclaims_added formclaims_removed formclaims_changed
+    form_references_added form_references_removed form_references_changed
+    form_qualifiers_added form_qualifiers_removed form_qualifiers_changed
     senses_added senses_removed senses_changed
     glosses_added glosses_removed glosses_changed
     senseclaims_added senseclaims_removed senseclaims_changed
+    sense_references_added sense_references_removed sense_references_changed
+    sense_qualifiers_added sense_qualifiers_removed sense_qualifiers_changed
     merge_to merge_from redirect undo restore
     clear_item create_item create_property create_lexeme
   ].freeze

@@ -9,6 +9,7 @@ require_relative 'comment_analyzer'
 require_relative 'form_analyzer'
 require_relative 'sense_analyzer'
 require_relative 'lemma_analyzer'
+require_relative 'language_analyzer'
 
 class RevisionAnalyzer
   CLAIM_TYPES = %i[added_claims removed_claims changed_claims added_references removed_references
@@ -20,15 +21,35 @@ class RevisionAnalyzer
   COMMENT_TYPES = %i[merge_to merge_from redirect undo restore clear_item].freeze
   LEMMA_TYPES = %i[added_lemmas removed_lemmas changed_lemmas].freeze
   FORM_TYPES = %i[added_forms removed_forms changed_forms added_representations removed_representations
-                  changed_representations added_formclaims removed_formclaims changed_formclaims].freeze
+                  changed_representations added_formclaims removed_formclaims changed_formclaims
+                  added_form_references removed_form_references changed_form_references
+                  added_form_qualifiers removed_form_qualifiers changed_form_qualifiers].freeze
   SENSE_TYPES = %i[added_senses removed_senses changed_senses added_glosses removed_glosses changed_glosses
-                   added_senseclaims removed_senseclaims changed_senseclaims].freeze
+                   added_senseclaims removed_senseclaims changed_senseclaims
+                   added_sense_references removed_sense_references changed_sense_references
+                   added_sense_qualifiers removed_sense_qualifiers changed_sense_qualifiers].freeze
   NOT_IN_ITEM = %i[create_lexeme create_property added_lemmas removed_lemmas changed_lemmas added_forms
-                   removed_forms changed_forms added_senses removed_senses changed_senses added_representations removed_representations changed_representations added_glosses removed_glosses changed_glosses added_formclaims removed_formclaims changed_formclaims added_senseclaims removed_senseclaims changed_senseclaims].freeze
+                   removed_forms changed_forms added_senses removed_senses changed_senses added_representations
+                   removed_representations changed_representations added_glosses removed_glosses changed_glosses
+                   added_formclaims removed_formclaims changed_formclaims added_senseclaims removed_senseclaims
+                   changed_senseclaims added_language changed_language added_lexical_category changed_lexical_category
+                   added_form_references removed_form_references changed_form_references
+                   added_form_qualifiers removed_form_qualifiers changed_form_qualifiers
+                   added_sense_references removed_sense_references changed_sense_references
+                   added_sense_qualifiers removed_sense_qualifiers changed_sense_qualifiers].freeze
   NOT_IN_PROPERTY = %i[create_lexeme create_item added_sitelinks removed_sitelinks changed_sitelinks
-                       added_lemmas removed_lemmas changed_lemmas added_forms removed_forms changed_forms added_senses removed_senses changed_senses added_representations removed_representations changed_representations added_glosses removed_glosses changed_glosses added_formclaims removed_formclaims changed_formclaims added_senseclaims removed_senseclaims changed_senseclaims].freeze
+                       added_lemmas removed_lemmas changed_lemmas added_forms removed_forms changed_forms
+                       added_senses removed_senses changed_senses added_representations removed_representations
+                       changed_representations added_glosses removed_glosses changed_glosses added_formclaims
+                       removed_formclaims changed_formclaims added_senseclaims removed_senseclaims changed_senseclaims
+                       added_language changed_language added_lexical_category changed_lexical_category
+                       added_form_references removed_form_references changed_form_references
+                       added_form_qualifiers removed_form_qualifiers changed_form_qualifiers
+                       added_sense_references removed_sense_references changed_sense_references
+                       added_sense_qualifiers removed_sense_qualifiers changed_sense_qualifiers].freeze
   NOT_IN_LEXEME = %i[create_item create_property added_sitelinks changed_sitelinks removed_sitelinks
                      added_aliases changed_aliases removed_aliases added_labels changed_labels removed_labels added_descriptions changed_descriptions removed_descriptions].freeze
+  LANGUAGE_TYPES = %i[added_language changed_language added_lexical_category changed_lexical_category].freeze
 
   # This method takes two revisions as input and returns the differences between them.
   def self.analyze_diff(revision_data)
@@ -167,6 +188,10 @@ class RevisionAnalyzer
 
     NOT_IN_LEXEME.each do |change_type|
       diff[change_type] = 0
+    end
+    language_diff = LanguageAnalyzer.isolate_language_differences(current_content, parent_content)
+    LANGUAGE_TYPES.each do |change_type|
+      diff[change_type] = language_diff[change_type].length
     end
     diff[:create_lexeme] = phrases[:create_item]
   end
