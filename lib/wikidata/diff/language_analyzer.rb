@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class LanguageAnalyzer
+  # Clearing language or lexicalCategory is not modeled: the Wikidata lexeme
+  # data model requires both fields at all times, so current nil is not expected.
   def self.isolate_language_differences(current_content, parent_content)
     added_language = []
     changed_language = []

@@ -11,37 +11,15 @@ class SenseAnalyzer
     added_glosses = []
     removed_glosses = []
     changed_glosses = []
-    added_senseclaims = []
-    removed_senseclaims = []
-    changed_senseclaims = []
-    added_sense_references = []
-    removed_sense_references = []
-    changed_sense_references = []
-    added_sense_qualifiers = []
-    removed_sense_qualifiers = []
-    changed_sense_qualifiers = []
+    totals = empty_senseclaim_totals
 
     current_content_senses = current_content['senses'] if current_content
     parent_content_senses  = parent_content['senses']  if parent_content
 
-    if !current_content_senses.is_a?(Array) || !parent_content_senses.is_a?(Array)
-      return {
-        added_senses: added_senses,
-        removed_senses: removed_senses,
-        changed_senses: changed_senses,
-        added_glosses: added_glosses,
-        removed_glosses: removed_glosses,
-        changed_glosses: changed_glosses,
-        added_senseclaims: added_senseclaims,
-        removed_senseclaims: removed_senseclaims,
-        changed_senseclaims: changed_senseclaims,
-        added_sense_references: added_sense_references,
-        removed_sense_references: removed_sense_references,
-        changed_sense_references: changed_sense_references,
-        added_sense_qualifiers: added_sense_qualifiers,
-        removed_sense_qualifiers: removed_sense_qualifiers,
-        changed_sense_qualifiers: changed_sense_qualifiers
-      }
+    unless current_content_senses.is_a?(Array) && parent_content_senses.is_a?(Array)
+      return { added_senses: added_senses, removed_senses: removed_senses, changed_senses: changed_senses,
+               added_glosses: added_glosses, removed_glosses: removed_glosses,
+               changed_glosses: changed_glosses }.merge(totals)
     end
 
     current_content_senses = current_content['senses'] || []
@@ -54,16 +32,7 @@ class SenseAnalyzer
         added_glosses   += glosses[:added]
         removed_glosses += glosses[:removed]
         changed_glosses += glosses[:changed]
-        senseclaims = InsideClaimAnalyzer.isolate_inside_claim_differences(current_sense, nil)
-        added_senseclaims        += senseclaims[:added]
-        removed_senseclaims      += senseclaims[:removed]
-        changed_senseclaims      += senseclaims[:changed]
-        added_sense_references   += senseclaims[:added_references]
-        removed_sense_references += senseclaims[:removed_references]
-        changed_sense_references += senseclaims[:changed_references]
-        added_sense_qualifiers   += senseclaims[:added_qualifiers]
-        removed_sense_qualifiers += senseclaims[:removed_qualifiers]
-        changed_sense_qualifiers += senseclaims[:changed_qualifiers]
+        accumulate_senseclaims(totals, current_sense, nil)
       end
     else
       current_content_senses.each_with_index do |current_sense, index|
@@ -74,32 +43,14 @@ class SenseAnalyzer
           added_glosses   += glosses[:added]
           removed_glosses += glosses[:removed]
           changed_glosses += glosses[:changed]
-          senseclaims = InsideClaimAnalyzer.isolate_inside_claim_differences(current_sense, nil)
-          added_senseclaims        += senseclaims[:added]
-          removed_senseclaims      += senseclaims[:removed]
-          changed_senseclaims      += senseclaims[:changed]
-          added_sense_references   += senseclaims[:added_references]
-          removed_sense_references += senseclaims[:removed_references]
-          changed_sense_references += senseclaims[:changed_references]
-          added_sense_qualifiers   += senseclaims[:added_qualifiers]
-          removed_sense_qualifiers += senseclaims[:removed_qualifiers]
-          changed_sense_qualifiers += senseclaims[:changed_qualifiers]
+          accumulate_senseclaims(totals, current_sense, nil)
         elsif current_sense != parent_sense
           changed_senses << { index: index }
           glosses = GlossAnalyzer.isolate_gloss_differences(current_sense, parent_sense)
           added_glosses   += glosses[:added]
           removed_glosses += glosses[:removed]
           changed_glosses += glosses[:changed]
-          senseclaims = InsideClaimAnalyzer.isolate_inside_claim_differences(current_sense, parent_sense)
-          added_senseclaims        += senseclaims[:added]
-          removed_senseclaims      += senseclaims[:removed]
-          changed_senseclaims      += senseclaims[:changed]
-          added_sense_references   += senseclaims[:added_references]
-          removed_sense_references += senseclaims[:removed_references]
-          changed_sense_references += senseclaims[:changed_references]
-          added_sense_qualifiers   += senseclaims[:added_qualifiers]
-          removed_sense_qualifiers += senseclaims[:removed_qualifiers]
-          changed_sense_qualifiers += senseclaims[:changed_qualifiers]
+          accumulate_senseclaims(totals, current_sense, parent_sense)
         end
       end
     end
@@ -113,34 +64,35 @@ class SenseAnalyzer
       added_glosses   += glosses[:added]
       removed_glosses += glosses[:removed]
       changed_glosses += glosses[:changed]
-      senseclaims = InsideClaimAnalyzer.isolate_inside_claim_differences(nil, parent_sense)
-      added_senseclaims        += senseclaims[:added]
-      removed_senseclaims      += senseclaims[:removed]
-      changed_senseclaims      += senseclaims[:changed]
-      added_sense_references   += senseclaims[:added_references]
-      removed_sense_references += senseclaims[:removed_references]
-      changed_sense_references += senseclaims[:changed_references]
-      added_sense_qualifiers   += senseclaims[:added_qualifiers]
-      removed_sense_qualifiers += senseclaims[:removed_qualifiers]
-      changed_sense_qualifiers += senseclaims[:changed_qualifiers]
+      accumulate_senseclaims(totals, nil, parent_sense)
     end
 
+    { added_senses: added_senses, removed_senses: removed_senses, changed_senses: changed_senses,
+      added_glosses: added_glosses, removed_glosses: removed_glosses,
+      changed_glosses: changed_glosses }.merge(totals)
+  end
+
+  def self.empty_senseclaim_totals
     {
-      added_senses: added_senses,
-      removed_senses: removed_senses,
-      changed_senses: changed_senses,
-      added_glosses: added_glosses,
-      removed_glosses: removed_glosses,
-      changed_glosses: changed_glosses,
-      added_senseclaims: added_senseclaims,
-      removed_senseclaims: removed_senseclaims,
-      changed_senseclaims: changed_senseclaims,
-      added_sense_references: added_sense_references,
-      removed_sense_references: removed_sense_references,
-      changed_sense_references: changed_sense_references,
-      added_sense_qualifiers: added_sense_qualifiers,
-      removed_sense_qualifiers: removed_sense_qualifiers,
-      changed_sense_qualifiers: changed_sense_qualifiers
+      added_senseclaims: [], removed_senseclaims: [], changed_senseclaims: [],
+      added_sense_references: [], removed_sense_references: [], changed_sense_references: [],
+      added_sense_qualifiers: [], removed_sense_qualifiers: [], changed_sense_qualifiers: []
     }
   end
+
+  private_class_method :empty_senseclaim_totals
+
+  def self.accumulate_senseclaims(totals, current_sense, parent_sense)
+    sc = InsideClaimAnalyzer.isolate_inside_claim_differences(current_sense, parent_sense)
+    totals[:added_senseclaims]        += sc[:added]
+    totals[:removed_senseclaims]      += sc[:removed]
+    totals[:changed_senseclaims]      += sc[:changed]
+    totals[:added_sense_references]   += sc[:added_references]
+    totals[:removed_sense_references] += sc[:removed_references]
+    totals[:changed_sense_references] += sc[:changed_references]
+    totals[:added_sense_qualifiers]   += sc[:added_qualifiers]
+    totals[:removed_sense_qualifiers] += sc[:removed_qualifiers]
+    totals[:changed_sense_qualifiers] += sc[:changed_qualifiers]
+  end
+  private_class_method :accumulate_senseclaims
 end

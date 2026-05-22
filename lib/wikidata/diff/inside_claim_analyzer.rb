@@ -67,11 +67,11 @@ class InsideClaimAnalyzer
           end
           parent_claims.each_with_index do |parent_claim, index|
             current_claim = current_claims[index]
-            if current_claim.nil?
-              removed << { key: claim_key, index: index }
-              ReferenceAnalyzer.reference_updates(parent_claim, removed_references, claim_key, index)
-              QualifierAnalyzer.qualifier_updates(parent_claim, removed_qualifiers, claim_key, index)
-            end
+            next unless current_claim.nil?
+
+            removed << { key: claim_key, index: index }
+            ReferenceAnalyzer.reference_updates(parent_claim, removed_references, claim_key, index)
+            QualifierAnalyzer.qualifier_updates(parent_claim, removed_qualifiers, claim_key, index)
           end
         else
           current_claims.each_with_index do |current_claim, index|
@@ -84,11 +84,11 @@ class InsideClaimAnalyzer
 
       parent_content_claims.each do |claim_key, parent_claims|
         parent_claims.each_with_index do |parent_claim, index|
-          if current_content_claims.nil? || !current_content_claims.key?(claim_key)
-            removed << { key: claim_key, index: index }
-            ReferenceAnalyzer.reference_updates(parent_claim, removed_references, claim_key, index)
-            QualifierAnalyzer.qualifier_updates(parent_claim, removed_qualifiers, claim_key, index)
-          end
+          next unless current_content_claims.nil? || !current_content_claims.key?(claim_key)
+
+          removed << { key: claim_key, index: index }
+          ReferenceAnalyzer.reference_updates(parent_claim, removed_references, claim_key, index)
+          QualifierAnalyzer.qualifier_updates(parent_claim, removed_qualifiers, claim_key, index)
         end
       end
     end
